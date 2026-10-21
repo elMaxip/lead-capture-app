@@ -1,0 +1,14 @@
+[
+  { "nombre": "Catalina Herrera", "email": "catalina.herrera@example.com", "telefono": "+56911223344", "nivelEducativo": "UNIVERSITARIA", "cursoId": 3, "modalidad": "ONLINE", "canalContacto": "WHATSAPP", "observaciones": "Busca reconversión laboral" },
+  { "nombre": "Diego Castillo", "email": "diego.castillo@example.com", "telefono": "+56922334455", "nivelEducativo": "TECNICO_PROFESIONAL", "cursoId": 5, "modalidad": "PRESENCIAL", "canalContacto": "TELEFONO", "observaciones": null },
+  { "nombre": "Sofía Vargas", "email": "sofia.vargas@example.com", "telefono": "+56933445566", "nivelEducativo": "MEDIA", "cursoId": 1, "modalidad": "ONLINE", "canalContacto": "EMAIL", "observaciones": "Disponible solo fines de semana" },
+  { "nombre": "Martín Reyes", "email": "martin.reyes@example.com", "telefono": "+56944556677", "nivelEducativo": "UNIVERSITARIA", "cursoId": 2, "modalidad": "ONLINE", "canalContacto": "EMAIL", "observaciones": null },
+  { "nombre": "Josefa Espinoza", "email": "josefa.espinoza@example.com", "telefono": "+56955667788", "nivelEducativo": "POSTGRADO", "cursoId": 9, "modalidad": "PRESENCIAL", "canalContacto": "WHATSAPP", "observaciones": "Consulta precio corporativo" },
+  { "nombre": "Lucas Tapia", "email": "lucas.tapia@example.com", "telefono": "+56966778899", "nivelEducativo": "TECNICO_PROFESIONAL", "cursoId": 4, "modalidad": "PRESENCIAL", "canalContacto": "TELEFONO", "observaciones": "Trabaja en turnos 4x4" },
+  { "nombre": "Emilia Carrasco", "email": "emilia.carrasco@example.com", "telefono": "+56977889900", "nivelEducativo": "BASICA", "cursoId": 8, "modalidad": "PRESENCIAL", "canalContacto": "TELEFONO", "observaciones": null },
+  { "nombre": "Agustín Núñez", "email": "agustin.nunez@example.com", "telefono": "+56988990011", "nivelEducativo": "MEDIA", "cursoId": 7, "modalidad": "ONLINE", "canalContacto": "WHATSAPP", "observaciones": "Requiere certificado para faena minera" },
+  { "nombre": "Florencia Sepúlveda", "email": "florencia.sepulveda@example.com", "telefono": "+56999001122", "nivelEducativo": "UNIVERSITARIA", "cursoId": 10, "modalidad": "ONLINE", "canalContacto": "EMAIL", "observaciones": null },
+  { "nombre": "Maximiliano Bravo", "email": "maximiliano.bravo@example.com", "telefono": "+56910203040", "nivelEducativo": "TECNICO_PROFESIONAL", "cursoId": 6, "modalidad": "PRESENCIAL", "canalContacto": "WHATSAPP", "observaciones": "Interesado también en PLC" },
+  { "nombre": "Trinidad Rojas", "email": "trinidad.rojas@example.com", "telefono": "+56950607080", "nivelEducativo": "MEDIA", "cursoId": 1, "modalidad": "ONLINE", "canalContacto": "WHATSAPP", "observaciones": null },
+  { "nombre": "Gaspar Olivares", "email": "gaspar.olivares@example.com", "telefono": "+56990807060", "nivelEducativo": "UNIVERSITARIA", "cursoId": 9, "modalidad": "ONLINE", "canalContacto": "EMAIL", "observaciones": "Prefiere clases en vivo" }
+]
