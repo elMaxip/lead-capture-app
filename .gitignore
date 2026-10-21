@@ -1,0 +1,16 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.kotlin
+
+# Firma release (nunca versionar credenciales ni el keystore)
+keystore.properties
+*.jks
+*.keystore
