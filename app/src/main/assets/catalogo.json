@@ -1,0 +1,38 @@
+{
+  "areas": [
+    {
+      "id": 1,
+      "nombre": "Tecnologías de la Información",
+      "cursos": [
+        { "id": 1, "nombre": "Desarrollo Web Full Stack" },
+        { "id": 2, "nombre": "Ciberseguridad Básica" },
+        { "id": 3, "nombre": "Análisis de Datos con Python" }
+      ]
+    },
+    {
+      "id": 2,
+      "nombre": "Ingeniería y Mantenimiento",
+      "cursos": [
+        { "id": 4, "nombre": "Mantenimiento Industrial" },
+        { "id": 5, "nombre": "Automatización con PLC" },
+        { "id": 6, "nombre": "Lectura de Planos Técnicos" }
+      ]
+    },
+    {
+      "id": 3,
+      "nombre": "Prevención de Riesgos",
+      "cursos": [
+        { "id": 7, "nombre": "Seguridad en Faenas" },
+        { "id": 8, "nombre": "Primeros Auxilios Laborales" }
+      ]
+    },
+    {
+      "id": 4,
+      "nombre": "Gestión y Liderazgo",
+      "cursos": [
+        { "id": 9, "nombre": "Gestión de Proyectos" },
+        { "id": 10, "nombre": "Liderazgo de Equipos" }
+      ]
+    }
+  ]
+}
