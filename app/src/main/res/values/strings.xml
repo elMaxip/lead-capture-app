@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">Captura Prospectos</string>
+
+    <!-- Lista -->
+    <string name="lista_titulo">Prospectos capturados</string>
+    <string name="lista_cargar_dataset">Cargar dataset ficticio</string>
+    <string name="lista_nuevo_prospecto">Nuevo prospecto</string>
+    <string name="lista_vacia">Aún no hay registros</string>
+    <string name="lista_vacia_detalle">Toca «Nuevo prospecto» para registrar al primero</string>
+    <string name="lista_todo_sincronizado">Todo sincronizado</string>
+    <plurals name="lista_pendientes">
+        <item quantity="one">%d pendiente de sincronizar</item>
+        <item quantity="other">%d pendientes de sincronizar</item>
+    </plurals>
+    <plurals name="lista_dataset_cargado">
+        <item quantity="one">Se cargó %d prospecto ficticio</item>
+        <item quantity="other">Se cargaron %d prospectos ficticios</item>
+    </plurals>
+    <string name="lista_dataset_no_disponible">El dataset ficticio no está disponible</string>
+    <string name="sin_conexion">Sin conexión: los registros se guardan en el dispositivo</string>
+
+    <!-- Estado de sincronización -->
+    <string name="estado_pendiente">Pendiente</string>
+    <string name="estado_sincronizado">Sincronizado</string>
+
+    <!-- Formulario -->
+    <string name="formulario_titulo">Nuevo prospecto</string>
+    <string name="volver">Volver</string>
+    <string name="seccion_datos">Datos del prospecto</string>
+    <string name="seccion_intereses">Intereses y preferencias</string>
+    <string name="seccion_operativa">Información operativa</string>
+    <string name="campo_nombre">Nombre completo</string>
+    <string name="campo_email">Correo electrónico</string>
+    <string name="campo_telefono">Teléfono móvil</string>
+    <string name="campo_telefono_prefijo">+56 9 </string>
+    <string name="campo_nivel">Nivel educativo</string>
+    <string name="campo_area">Área de interés</string>
+    <string name="campo_curso">Curso</string>
+    <string name="campo_curso_sin_area">Primero elige un área</string>
+    <string name="campo_modalidad">Modalidad</string>
+    <string name="campo_canal">Canal preferido de contacto</string>
+    <string name="campo_observaciones">Observaciones (opcional)</string>
+    <string name="campo_contador">%1$d/%2$d</string>
+    <string name="campo_fecha_captura">Fecha y hora de captura</string>
+    <string name="campo_fecha_captura_ayuda">Se registra automáticamente al guardar</string>
+    <string name="guardar">Guardar prospecto</string>
+    <string name="guardado">Prospecto guardado</string>
+    <string name="guardado_sin_conexion">Guardado sin conexión; se sincronizará automáticamente</string>
+    <string name="revisa_campos">Revisa los campos marcados</string>
+</resources>
