@@ -46,7 +46,15 @@ data class FormularioUiState(
     val cursoSeleccionado: CursoEntity? get() = cursos.find { it.id == cursoId }
 }
 
+/** Estado de los registros guardados en el dispositivo. */
+data class ResumenSync(
+    val pendientes: Int = 0,
+    val sinConexion: Boolean = false,
+    val cargando: Boolean = true,
+)
+
 sealed interface FormularioEvento {
     data class Guardado(val sinConexion: Boolean) : FormularioEvento
     data class ErrorValidacion(val primerCampo: Campo) : FormularioEvento
+    data class DatasetCargado(val cantidad: Int) : FormularioEvento
 }

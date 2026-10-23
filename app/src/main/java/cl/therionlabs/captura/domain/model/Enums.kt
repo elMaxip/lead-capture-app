@@ -19,6 +19,11 @@ enum class CanalContacto(val etiqueta: String) {
     WHATSAPP("WhatsApp"),
 }
 
+enum class Rol(val etiqueta: String) {
+    CAPTADOR("Captador de terreno"),
+    ADMINISTRATIVO("Administrativo"),
+}
+
 enum class EstadoSync(val etiqueta: String) {
     PENDIENTE("Pendiente"),
     SINCRONIZADO("Sincronizado"),

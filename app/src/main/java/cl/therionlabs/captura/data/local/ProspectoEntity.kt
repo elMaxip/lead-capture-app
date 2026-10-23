@@ -1,6 +1,5 @@
 package cl.therionlabs.captura.data.local
 
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -25,9 +24,4 @@ data class ProspectoEntity(
     val observaciones: String?,
     val capturadoEn: Long,
     val estado: EstadoSync,
-)
-
-data class ProspectoConCurso(
-    @Embedded val prospecto: ProspectoEntity,
-    val cursoNombre: String?,
 )

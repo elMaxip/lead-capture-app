@@ -6,6 +6,7 @@ import cl.therionlabs.captura.data.local.AreaEntity
 import cl.therionlabs.captura.data.local.CursoEntity
 import cl.therionlabs.captura.data.local.ProspectoEntity
 import cl.therionlabs.captura.data.network.ConnectivityObserver
+import cl.therionlabs.captura.data.repository.AuthRepository
 import cl.therionlabs.captura.data.repository.CatalogoRepository
 import cl.therionlabs.captura.data.repository.ProspectoRepository
 import cl.therionlabs.captura.data.sync.SyncScheduler
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -37,6 +39,7 @@ import javax.inject.Inject
 class FormularioViewModel @Inject constructor(
     private val prospectoRepository: ProspectoRepository,
     private val syncScheduler: SyncScheduler,
+    private val authRepository: AuthRepository,
     catalogoRepository: CatalogoRepository,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
@@ -51,6 +54,17 @@ class FormularioViewModel @Inject constructor(
         viewModelScope,
         SharingStarted.Eagerly,
         connectivityObserver.estaConectadoAhora(),
+    )
+
+    val resumen: StateFlow<ResumenSync> = combine(
+        prospectoRepository.observarPendientes(),
+        conectado,
+    ) { pendientes, conectado ->
+        ResumenSync(pendientes = pendientes, sinConexion = !conectado, cargando = false)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ResumenSync(sinConexion = !connectivityObserver.estaConectadoAhora()),
     )
 
     init {
@@ -128,6 +142,16 @@ class FormularioViewModel @Inject constructor(
             eventos.send(FormularioEvento.Guardado(sinConexion = !conectado.value))
         }
     }
+
+    fun cargarDatasetFicticio() {
+        viewModelScope.launch {
+            val cantidad = prospectoRepository.cargarDatasetFicticio()
+            if (cantidad > 0) syncScheduler.programar()
+            eventos.send(FormularioEvento.DatasetCargado(cantidad))
+        }
+    }
+
+    fun cerrarSesion() = authRepository.cerrarSesion()
 
     private inline fun editar(campo: Campo, crossinline cambio: FormularioUiState.() -> FormularioUiState) {
         _uiState.update { it.cambio().copy(tocados = it.tocados + campo) }

@@ -1,10 +1,10 @@
 package cl.therionlabs.captura.data.repository
 
 import android.content.Context
-import cl.therionlabs.captura.data.local.ProspectoConCurso
 import cl.therionlabs.captura.data.local.ProspectoDao
 import cl.therionlabs.captura.data.local.ProspectoEntity
 import cl.therionlabs.captura.data.remote.ApiService
+import cl.therionlabs.captura.data.remote.dto.ProspectoConsolidadoDto
 import cl.therionlabs.captura.data.remote.dto.SyncRequestDto
 import cl.therionlabs.captura.data.remote.dto.SyncResponseDto
 import cl.therionlabs.captura.data.remote.dto.toDto
@@ -32,7 +32,7 @@ class ProspectoRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
 
-    fun observarTodos(): Flow<List<ProspectoConCurso>> = dao.observarTodos()
+    fun observarPendientes(): Flow<Int> = dao.observarPendientes()
 
     suspend fun guardar(prospecto: ProspectoEntity) = dao.insertar(prospecto)
 
@@ -44,6 +44,9 @@ class ProspectoRepository @Inject constructor(
 
     suspend fun enviar(lote: List<ProspectoEntity>): SyncResponseDto =
         api.sincronizar(SyncRequestDto(lote.map { it.toDto() }))
+
+    /** Prospectos ya consolidados en el servidor (perfil Administrativo). */
+    suspend fun listarConsolidados(): List<ProspectoConsolidadoDto> = api.listarProspectos()
 
     suspend fun cargarDatasetFicticio(): Int = withContext(Dispatchers.IO) {
         val texto = try {

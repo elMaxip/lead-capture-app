@@ -7,7 +7,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cl.therionlabs.captura.data.session.SessionManager
 import cl.therionlabs.captura.data.sync.SyncScheduler
 import cl.therionlabs.captura.ui.navigation.AppNavHost
 import cl.therionlabs.captura.ui.theme.CapturaTheme
@@ -18,6 +21,8 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var syncScheduler: SyncScheduler
+
+    @Inject lateinit var sessionManager: SessionManager
 
     private val pedirRedLocal =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
@@ -30,7 +35,8 @@ class MainActivity : ComponentActivity() {
         solicitarAccesoRedLocal()
         setContent {
             CapturaTheme {
-                AppNavHost()
+                val sesion by sessionManager.sesion.collectAsStateWithLifecycle()
+                AppNavHost(sesion)
             }
         }
     }

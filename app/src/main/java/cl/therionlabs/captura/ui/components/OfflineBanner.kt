@@ -23,7 +23,11 @@ import androidx.compose.ui.unit.dp
 import cl.therionlabs.captura.R
 
 @Composable
-fun OfflineBanner(visible: Boolean, modifier: Modifier = Modifier) {
+fun OfflineBanner(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    mensaje: String = stringResource(R.string.sin_conexion),
+) {
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
@@ -42,7 +46,7 @@ fun OfflineBanner(visible: Boolean, modifier: Modifier = Modifier) {
             ) {
                 Icon(Icons.Outlined.CloudOff, contentDescription = null)
                 Text(
-                    text = stringResource(R.string.sin_conexion),
+                    text = mensaje,
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }

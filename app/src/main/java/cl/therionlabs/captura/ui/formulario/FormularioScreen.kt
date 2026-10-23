@@ -21,12 +21,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Interests
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cl.therionlabs.captura.BuildConfig
 import cl.therionlabs.captura.R
 import cl.therionlabs.captura.domain.model.CanalContacto
 import cl.therionlabs.captura.domain.model.Modalidad
@@ -74,17 +76,17 @@ import cl.therionlabs.captura.domain.model.NivelEducativo
 import cl.therionlabs.captura.domain.validation.ProspectoValidator
 import cl.therionlabs.captura.ui.components.DropdownField
 import cl.therionlabs.captura.ui.components.ErrorAnimado
+import cl.therionlabs.captura.ui.components.OfflineBanner
+import cl.therionlabs.captura.ui.components.ResumenPendientes
 import cl.therionlabs.captura.ui.lista.formatearFecha
 import cl.therionlabs.captura.util.rememberHaptics
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormularioScreen(
-    onVolver: () -> Unit,
-    viewModel: FormularioViewModel = hiltViewModel(),
-) {
+fun FormularioScreen(viewModel: FormularioViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val resumen by viewModel.resumen.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
     val haptics = rememberHaptics()
@@ -108,6 +110,13 @@ fun FormularioScreen(
                     haptics.error()
                     focus.getValue(evento.primerCampo).requestFocus()
                 }
+                is FormularioEvento.DatasetCargado -> snackbarHostState.showSnackbar(
+                    if (evento.cantidad > 0) {
+                        resources.getQuantityString(R.plurals.dataset_cargado, evento.cantidad, evento.cantidad)
+                    } else {
+                        resources.getString(R.string.dataset_no_disponible)
+                    }
+                )
             }
         }
     }
@@ -116,11 +125,19 @@ fun FormularioScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.formulario_titulo)) },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
+                actions = {
+                    if (BuildConfig.DEBUG) {
+                        IconButton(onClick = viewModel::cargarDatasetFicticio) {
+                            Icon(
+                                Icons.Outlined.Science,
+                                contentDescription = stringResource(R.string.cargar_dataset),
+                            )
+                        }
+                    }
+                    IconButton(onClick = viewModel::cerrarSesion) {
                         Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.volver),
+                            Icons.AutoMirrored.Outlined.Logout,
+                            contentDescription = stringResource(R.string.cerrar_sesion),
                         )
                     }
                 },
@@ -133,29 +150,36 @@ fun FormularioScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .consumeWindowInsets(padding)
-                .imePadding()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .imePadding(),
         ) {
+            OfflineBanner(visible = resumen.sinConexion)
+            if (!resumen.cargando) ResumenPendientes(pendientes = resumen.pendientes)
             Column(
                 modifier = Modifier
-                    .widthIn(max = 600.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                SeccionDatos(state, viewModel, focus, onSiguiente = { focusManager.clearFocus() })
-                SeccionIntereses(state, viewModel, focus)
-                SeccionOperativa(state, viewModel, focus)
-                BotonGuardar(
-                    habilitado = state.esValido && !state.guardando,
-                    guardando = state.guardando,
-                    onGuardar = {
-                        focusManager.clearFocus()
-                        viewModel.guardar()
-                    },
-                )
-                Spacer(Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = 600.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    SeccionDatos(state, viewModel, focus, onSiguiente = { focusManager.clearFocus() })
+                    SeccionIntereses(state, viewModel, focus)
+                    SeccionOperativa(state, viewModel, focus)
+                    BotonGuardar(
+                        habilitado = state.esValido && !state.guardando,
+                        guardando = state.guardando,
+                        onGuardar = {
+                            focusManager.clearFocus()
+                            viewModel.guardar()
+                        },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }

@@ -1,7 +1,8 @@
 package cl.therionlabs.captura.ui.lista
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,21 +17,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CloudDone
-import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.ContactPhone
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Laptop
-import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,12 +48,17 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
@@ -56,10 +69,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cl.therionlabs.captura.BuildConfig
 import cl.therionlabs.captura.R
 import cl.therionlabs.captura.domain.model.Modalidad
-import cl.therionlabs.captura.ui.components.EstadoChip
 import cl.therionlabs.captura.ui.components.OfflineBanner
 import java.time.Instant
 import java.time.ZoneId
@@ -74,27 +85,17 @@ fun formatearFecha(epochMs: Long): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListaScreen(
-    onNuevoProspecto: () -> Unit,
-    viewModel: ListaViewModel = hiltViewModel(),
-) {
+fun ListaScreen(viewModel: ListaViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val listState = rememberLazyListState()
 
-    LaunchedEffect(viewModel) {
-        viewModel.eventosFlow.collect { evento ->
-            when (evento) {
-                is ListaEvento.DatasetCargado -> snackbarHostState.showSnackbar(
-                    if (evento.cantidad > 0) {
-                        resources.getQuantityString(R.plurals.lista_dataset_cargado, evento.cantidad, evento.cantidad)
-                    } else {
-                        resources.getString(R.string.lista_dataset_no_disponible)
-                    }
-                )
-            }
+    // Si ya hay datos en pantalla, el error de una actualización se informa con un snackbar.
+    LaunchedEffect(state.error, state.prospectos.isEmpty()) {
+        val error = state.error
+        if (error != null && state.prospectos.isNotEmpty()) {
+            snackbarHostState.showSnackbar(resources.getString(error))
         }
     }
 
@@ -104,23 +105,17 @@ fun ListaScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.lista_titulo)) },
                 actions = {
-                    if (BuildConfig.DEBUG) {
-                        IconButton(onClick = viewModel::cargarDatasetFicticio) {
-                            Icon(
-                                Icons.Outlined.Science,
-                                contentDescription = stringResource(R.string.lista_cargar_dataset),
-                            )
-                        }
+                    IconButton(onClick = viewModel::actualizar, enabled = !state.actualizando) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.lista_actualizar))
+                    }
+                    IconButton(onClick = viewModel::cerrarSesion) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Logout,
+                            contentDescription = stringResource(R.string.cerrar_sesion),
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior,
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNuevoProspecto,
-                icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
-                text = { Text(stringResource(R.string.lista_nuevo_prospecto)) },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -130,23 +125,53 @@ fun ListaScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            OfflineBanner(visible = state.sinConexion)
+            OfflineBanner(
+                visible = state.sinConexion,
+                mensaje = stringResource(R.string.lista_sin_conexion),
+            )
 
-            when {
-                state.cargando -> Unit
-                state.prospectos.isEmpty() -> EstadoVacio(Modifier.weight(1f))
-                else -> {
-                    val primerId = state.prospectos.first().id
-                    LaunchedEffect(primerId) { listState.animateScrollToItem(0) }
-
-                    Resumen(pendientes = state.pendientes)
-                    LazyColumn(
-                        state = listState,
+            PullToRefreshBox(
+                isRefreshing = state.actualizando && !state.cargando,
+                onRefresh = viewModel::actualizar,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                when {
+                    state.cargando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                    state.prospectos.isEmpty() && state.error != null -> EstadoVacio(
+                        icono = Icons.Outlined.CloudOff,
+                        titulo = stringResource(state.error!!),
+                        detalle = stringResource(R.string.lista_error_detalle),
+                        onReintentar = viewModel::actualizar,
+                    )
+                    state.prospectos.isEmpty() -> EstadoVacio(
+                        icono = Icons.Outlined.Inbox,
+                        titulo = stringResource(R.string.lista_vacia),
+                        detalle = stringResource(R.string.lista_vacia_detalle),
+                        onReintentar = viewModel::actualizar,
+                    )
+                    else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        item(key = "total") {
+                            Text(
+                                pluralStringResource(
+                                    R.plurals.lista_total,
+                                    state.prospectos.size,
+                                    state.prospectos.size,
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .widthIn(max = 600.dp)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                            )
+                        }
                         items(state.prospectos, key = { it.id }) { item ->
                             ProspectoCard(
                                 item = item,
@@ -164,39 +189,12 @@ fun ListaScreen(
 }
 
 @Composable
-private fun Resumen(pendientes: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        AnimatedContent(targetState = pendientes == 0, label = "resumen") { todoSincronizado ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Icon(
-                    if (todoSincronizado) Icons.Outlined.CloudDone else Icons.Outlined.CloudUpload,
-                    contentDescription = null,
-                    tint = if (todoSincronizado) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.tertiary,
-                )
-                Text(
-                    text = if (todoSincronizado) stringResource(R.string.lista_todo_sincronizado)
-                    else pluralStringResource(R.plurals.lista_pendientes, pendientes, pendientes),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun ProspectoCard(item: ProspectoItem, modifier: Modifier = Modifier) {
+    var expandido by rememberSaveable(item.id) { mutableStateOf(false) }
+    val giro by animateFloatAsState(if (expandido) 180f else 0f, label = "giroFlecha")
+
     Card(
+        onClick = { expandido = !expandido },
         modifier = modifier.animateContentSize(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
@@ -219,8 +217,14 @@ private fun ProspectoCard(item: ProspectoItem, modifier: Modifier = Modifier) {
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Spacer(Modifier.size(8.dp))
-                EstadoChip(item.estado)
+                Icon(
+                    Icons.Outlined.ExpandMore,
+                    contentDescription = stringResource(
+                        if (expandido) R.string.lista_ocultar_detalle else R.string.lista_ver_detalle
+                    ),
+                    modifier = Modifier.rotate(giro),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Spacer(Modifier.size(4.dp))
             Row(
@@ -233,6 +237,26 @@ private fun ProspectoCard(item: ProspectoItem, modifier: Modifier = Modifier) {
                     texto = item.modalidad.etiqueta,
                 )
                 Dato(icono = Icons.Outlined.Schedule, texto = formatearFecha(item.capturadoEn))
+            }
+
+            AnimatedVisibility(visible = expandido) {
+                Column(
+                    modifier = Modifier.padding(start = 52.dp, top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    HorizontalDivider()
+                    Dato(icono = Icons.Outlined.Email, texto = item.email)
+                    Dato(icono = Icons.Outlined.Phone, texto = item.telefono)
+                    Dato(
+                        icono = Icons.Outlined.ContactPhone,
+                        texto = stringResource(R.string.lista_canal, item.canalContacto),
+                    )
+                    Dato(icono = Icons.Outlined.School, texto = item.nivelEducativo)
+                    Dato(icono = Icons.Outlined.Category, texto = item.area)
+                    item.observaciones?.let {
+                        Dato(icono = Icons.AutoMirrored.Outlined.StickyNote2, texto = it)
+                    }
+                }
             }
         }
     }
@@ -277,31 +301,37 @@ private fun Dato(icono: ImageVector, texto: String) {
 }
 
 @Composable
-private fun EstadoVacio(modifier: Modifier = Modifier) {
+private fun EstadoVacio(
+    icono: ImageVector,
+    titulo: String,
+    detalle: String,
+    onReintentar: () -> Unit,
+) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            Icons.Outlined.Inbox,
+            icono,
             contentDescription = null,
             modifier = Modifier.size(72.dp),
             tint = MaterialTheme.colorScheme.outline,
         )
         Spacer(Modifier.size(16.dp))
-        Text(
-            stringResource(R.string.lista_vacia),
-            style = MaterialTheme.typography.titleMedium,
-        )
+        Text(titulo, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
         Spacer(Modifier.size(4.dp))
         Text(
-            stringResource(R.string.lista_vacia_detalle),
+            detalle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.size(16.dp))
+        FilledTonalButton(onClick = onReintentar) {
+            Text(stringResource(R.string.lista_actualizar))
+        }
     }
 }

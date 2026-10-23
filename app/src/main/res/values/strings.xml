@@ -1,31 +1,51 @@
 <resources>
     <string name="app_name">Captura Prospectos</string>
 
-    <!-- Lista -->
-    <string name="lista_titulo">Prospectos capturados</string>
-    <string name="lista_cargar_dataset">Cargar dataset ficticio</string>
-    <string name="lista_nuevo_prospecto">Nuevo prospecto</string>
-    <string name="lista_vacia">Aún no hay registros</string>
-    <string name="lista_vacia_detalle">Toca «Nuevo prospecto» para registrar al primero</string>
-    <string name="lista_todo_sincronizado">Todo sincronizado</string>
-    <plurals name="lista_pendientes">
+    <!-- Sesión -->
+    <string name="login_subtitulo">Inicia sesión con tu cuenta de THERIONLABS</string>
+    <string name="login_usuario">Usuario</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_mostrar_password">Mostrar contraseña</string>
+    <string name="login_ocultar_password">Ocultar contraseña</string>
+    <string name="login_ingresar">Ingresar</string>
+    <string name="login_error_credenciales">Usuario o contraseña incorrectos</string>
+    <string name="login_error_conexion">No se pudo conectar con el servidor. Se necesita conexión para iniciar sesión.</string>
+    <string name="login_error_servidor">El servidor no pudo procesar el inicio de sesión</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Lista de prospectos consolidados (Administrativo) -->
+    <string name="lista_titulo">Prospectos consolidados</string>
+    <string name="lista_actualizar">Actualizar</string>
+    <string name="lista_vacia">Aún no hay prospectos consolidados</string>
+    <string name="lista_vacia_detalle">Aparecerán aquí cuando los captadores sincronicen sus registros</string>
+    <string name="lista_error_conexion">No se pudo conectar con el servidor</string>
+    <string name="lista_error_servidor">El servidor no pudo entregar los prospectos</string>
+    <string name="lista_error_detalle">Revisa la conexión e inténtalo de nuevo</string>
+    <string name="lista_sin_conexion">Sin conexión: no se pueden consultar los prospectos</string>
+    <string name="lista_ver_detalle">Ver detalle</string>
+    <string name="lista_ocultar_detalle">Ocultar detalle</string>
+    <string name="lista_canal">Contactar por: %1$s</string>
+    <plurals name="lista_total">
+        <item quantity="one">%d prospecto consolidado</item>
+        <item quantity="other">%d prospectos consolidados</item>
+    </plurals>
+
+    <!-- Estado de sincronización (Captador) -->
+    <string name="todo_sincronizado">Todo sincronizado</string>
+    <plurals name="pendientes">
         <item quantity="one">%d pendiente de sincronizar</item>
         <item quantity="other">%d pendientes de sincronizar</item>
     </plurals>
-    <plurals name="lista_dataset_cargado">
+    <string name="sin_conexion">Sin conexión: los registros se guardan en el dispositivo</string>
+    <string name="cargar_dataset">Cargar dataset ficticio</string>
+    <plurals name="dataset_cargado">
         <item quantity="one">Se cargó %d prospecto ficticio</item>
         <item quantity="other">Se cargaron %d prospectos ficticios</item>
     </plurals>
-    <string name="lista_dataset_no_disponible">El dataset ficticio no está disponible</string>
-    <string name="sin_conexion">Sin conexión: los registros se guardan en el dispositivo</string>
-
-    <!-- Estado de sincronización -->
-    <string name="estado_pendiente">Pendiente</string>
-    <string name="estado_sincronizado">Sincronizado</string>
+    <string name="dataset_no_disponible">El dataset ficticio no está disponible</string>
 
     <!-- Formulario -->
     <string name="formulario_titulo">Nuevo prospecto</string>
-    <string name="volver">Volver</string>
     <string name="seccion_datos">Datos del prospecto</string>
     <string name="seccion_intereses">Intereses y preferencias</string>
     <string name="seccion_operativa">Información operativa</string>

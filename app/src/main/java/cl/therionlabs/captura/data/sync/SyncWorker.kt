@@ -7,6 +7,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import cl.therionlabs.captura.data.repository.CatalogoRepository
 import cl.therionlabs.captura.data.repository.ProspectoRepository
+import cl.therionlabs.captura.data.session.SessionManager
+import cl.therionlabs.captura.domain.model.Rol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
@@ -19,9 +21,13 @@ class SyncWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val prospectoRepository: ProspectoRepository,
     private val catalogoRepository: CatalogoRepository,
+    private val sessionManager: SessionManager,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        // Solo el captador sincroniza; sin sesión los registros esperan al próximo inicio de sesión.
+        if (sessionManager.sesion.value?.rol != Rol.CAPTADOR) return Result.success()
+
         try {
             catalogoRepository.refrescar()
         } catch (e: CancellationException) {

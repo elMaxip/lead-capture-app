@@ -8,15 +8,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ProspectoDao {
 
-    @Query(
-        """
-        SELECT p.*, c.nombre AS cursoNombre
-        FROM prospectos p
-        LEFT JOIN cursos c ON c.id = p.cursoId
-        ORDER BY p.capturadoEn DESC
-        """
-    )
-    fun observarTodos(): Flow<List<ProspectoConCurso>>
+    @Query("SELECT COUNT(*) FROM prospectos WHERE estado = 'PENDIENTE'")
+    fun observarPendientes(): Flow<Int>
 
     @Insert
     suspend fun insertar(prospecto: ProspectoEntity)

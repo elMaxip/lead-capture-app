@@ -18,6 +18,21 @@ data class ProspectoDto(
     val capturadoEn: String,
 )
 
+@Serializable
+data class ProspectoConsolidadoDto(
+    val id: String,
+    val nombre: String,
+    val email: String,
+    val telefono: String,
+    val nivelEducativo: String,
+    val cursoNombre: String,
+    val areaNombre: String,
+    val modalidad: String,
+    val canalContacto: String,
+    val observaciones: String?,
+    val capturadoEn: String,
+)
+
 fun ProspectoEntity.toDto() = ProspectoDto(
     id = id,
     nombre = nombre,
