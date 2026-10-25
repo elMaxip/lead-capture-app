@@ -17,13 +17,9 @@ data class Sesion(
     val rol: Rol,
 )
 
-/**
- * Guarda la sesión activa en el dispositivo para que el captador pueda seguir
- * trabajando sin conexión después de iniciar sesión una vez.
- */
 @Singleton
 class SessionManager @Inject constructor(
-    @param:ApplicationContext context: Context,
+    @ApplicationContext context: Context,
 ) {
     private val prefs = context.getSharedPreferences(ARCHIVO, Context.MODE_PRIVATE)
 

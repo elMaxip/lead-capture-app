@@ -43,7 +43,6 @@ class LoginViewModel @Inject constructor(
 
         _uiState.update { it.copy(cargando = true, error = null) }
         viewModelScope.launch {
-            // Si sale bien, AppNavHost reacciona a la nueva sesión y cambia de pantalla.
             val error = try {
                 authRepository.iniciarSesion(actual.username, actual.password)
                 null

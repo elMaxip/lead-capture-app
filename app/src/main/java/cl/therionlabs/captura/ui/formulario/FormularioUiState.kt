@@ -26,16 +26,19 @@ data class FormularioUiState(
     val cursos: List<CursoEntity> = emptyList(),
     val guardando: Boolean = false,
 ) {
-    val errores: Map<Campo, String> = buildMap {
-        ProspectoValidator.validarNombre(nombre)?.let { put(Campo.NOMBRE, it) }
-        ProspectoValidator.validarEmail(email)?.let { put(Campo.EMAIL, it) }
-        ProspectoValidator.validarTelefono(telefono)?.let { put(Campo.TELEFONO, it) }
-        ProspectoValidator.validarSeleccion(nivelEducativo)?.let { put(Campo.NIVEL_EDUCATIVO, it) }
-        ProspectoValidator.validarSeleccion(areaId)?.let { put(Campo.AREA, it) }
-        ProspectoValidator.validarSeleccion(cursoId)?.let { put(Campo.CURSO, it) }
-        ProspectoValidator.validarSeleccion(modalidad)?.let { put(Campo.MODALIDAD, it) }
-        ProspectoValidator.validarSeleccion(canalContacto)?.let { put(Campo.CANAL_CONTACTO, it) }
-        ProspectoValidator.validarObservaciones(observaciones)?.let { put(Campo.OBSERVACIONES, it) }
+    // Perezoso: solo se valida el estado que realmente se lee, no cada copy() intermedio.
+    val errores: Map<Campo, String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        buildMap {
+            ProspectoValidator.validarNombre(nombre)?.let { put(Campo.NOMBRE, it) }
+            ProspectoValidator.validarEmail(email)?.let { put(Campo.EMAIL, it) }
+            ProspectoValidator.validarTelefono(telefono)?.let { put(Campo.TELEFONO, it) }
+            ProspectoValidator.validarSeleccion(nivelEducativo)?.let { put(Campo.NIVEL_EDUCATIVO, it) }
+            ProspectoValidator.validarSeleccion(areaId)?.let { put(Campo.AREA, it) }
+            ProspectoValidator.validarSeleccion(cursoId)?.let { put(Campo.CURSO, it) }
+            ProspectoValidator.validarSeleccion(modalidad)?.let { put(Campo.MODALIDAD, it) }
+            ProspectoValidator.validarSeleccion(canalContacto)?.let { put(Campo.CANAL_CONTACTO, it) }
+            ProspectoValidator.validarObservaciones(observaciones)?.let { put(Campo.OBSERVACIONES, it) }
+        }
     }
 
     val esValido: Boolean get() = errores.isEmpty()

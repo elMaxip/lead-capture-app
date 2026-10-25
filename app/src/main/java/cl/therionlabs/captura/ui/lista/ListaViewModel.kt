@@ -24,7 +24,6 @@ import java.io.IOException
 import java.time.Instant
 import javax.inject.Inject
 
-/** Lista los prospectos consolidados en el servidor (perfil Administrativo). */
 @HiltViewModel
 class ListaViewModel @Inject constructor(
     private val prospectoRepository: ProspectoRepository,

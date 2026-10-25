@@ -1,7 +1,6 @@
 package cl.therionlabs.captura.ui.lista
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,7 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -66,6 +66,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,15 +84,24 @@ private val FORMATO_FECHA: DateTimeFormatter =
 fun formatearFecha(epochMs: Long): String =
     FORMATO_FECHA.format(Instant.ofEpochMilli(epochMs).atZone(ZoneId.systemDefault()))
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen(viewModel: ListaViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    ListaScreenContent(state, viewModel::actualizar, viewModel::cerrarSesion)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+fun ListaScreenContent(
+    state: ListaUiState = ListaUiState(),
+    actualizar: () -> Unit = {},
+    cerrarSesion: () -> Unit = {},
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // Si ya hay datos en pantalla, el error de una actualización se informa con un snackbar.
     LaunchedEffect(state.error, state.prospectos.isEmpty()) {
         val error = state.error
         if (error != null && state.prospectos.isNotEmpty()) {
@@ -105,10 +115,10 @@ fun ListaScreen(viewModel: ListaViewModel = hiltViewModel()) {
             TopAppBar(
                 title = { Text(stringResource(R.string.lista_titulo)) },
                 actions = {
-                    IconButton(onClick = viewModel::actualizar, enabled = !state.actualizando) {
+                    IconButton(onClick = actualizar, enabled = !state.actualizando) {
                         Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.lista_actualizar))
                     }
-                    IconButton(onClick = viewModel::cerrarSesion) {
+                    IconButton(onClick = cerrarSesion) {
                         Icon(
                             Icons.AutoMirrored.Outlined.Logout,
                             contentDescription = stringResource(R.string.cerrar_sesion),
@@ -132,24 +142,24 @@ fun ListaScreen(viewModel: ListaViewModel = hiltViewModel()) {
 
             PullToRefreshBox(
                 isRefreshing = state.actualizando && !state.cargando,
-                onRefresh = viewModel::actualizar,
+                onRefresh = actualizar,
                 modifier = Modifier.fillMaxSize(),
             ) {
                 when {
-                    state.cargando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        state.cargando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                     state.prospectos.isEmpty() && state.error != null -> EstadoVacio(
                         icono = Icons.Outlined.CloudOff,
                         titulo = stringResource(state.error!!),
                         detalle = stringResource(R.string.lista_error_detalle),
-                        onReintentar = viewModel::actualizar,
+                        onReintentar = actualizar,
                     )
                     state.prospectos.isEmpty() -> EstadoVacio(
                         icono = Icons.Outlined.Inbox,
                         titulo = stringResource(R.string.lista_vacia),
                         detalle = stringResource(R.string.lista_vacia_detalle),
-                        onReintentar = viewModel::actualizar,
+                        onReintentar = actualizar,
                     )
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -176,7 +186,7 @@ fun ListaScreen(viewModel: ListaViewModel = hiltViewModel()) {
                             ProspectoCard(
                                 item = item,
                                 modifier = Modifier
-                                    .animateItem()
+                                    .animateItem(placementSpec = null)
                                     .widthIn(max = 600.dp)
                                     .fillMaxWidth(),
                             )
@@ -195,7 +205,7 @@ private fun ProspectoCard(item: ProspectoItem, modifier: Modifier = Modifier) {
 
     Card(
         onClick = { expandido = !expandido },
-        modifier = modifier.animateContentSize(),
+        modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

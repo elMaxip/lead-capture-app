@@ -29,7 +29,7 @@ class ProspectoRepository @Inject constructor(
     private val dao: ProspectoDao,
     private val api: ApiService,
     private val json: Json,
-    @param:ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context,
 ) {
 
     fun observarPendientes(): Flow<Int> = dao.observarPendientes()
@@ -45,7 +45,6 @@ class ProspectoRepository @Inject constructor(
     suspend fun enviar(lote: List<ProspectoEntity>): SyncResponseDto =
         api.sincronizar(SyncRequestDto(lote.map { it.toDto() }))
 
-    /** Prospectos ya consolidados en el servidor (perfil Administrativo). */
     suspend fun listarConsolidados(): List<ProspectoConsolidadoDto> = api.listarProspectos()
 
     suspend fun cargarDatasetFicticio(): Int = withContext(Dispatchers.IO) {
@@ -67,7 +66,6 @@ class ProspectoRepository @Inject constructor(
                     modalidad = p.modalidad,
                     canalContacto = p.canalContacto,
                     observaciones = p.observaciones,
-                    // Escalonados para que se vean en orden en la lista.
                     capturadoEn = ahora - TimeUnit.MINUTES.toMillis(i.toLong()),
                     estado = EstadoSync.PENDIENTE,
                 )

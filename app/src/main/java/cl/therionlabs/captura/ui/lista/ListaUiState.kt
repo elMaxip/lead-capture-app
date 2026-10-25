@@ -22,5 +22,5 @@ data class ListaUiState(
     val sinConexion: Boolean = false,
     val cargando: Boolean = true,
     val actualizando: Boolean = false,
-    @param:StringRes val error: Int? = null,
+    @StringRes val error: Int? = null,
 )

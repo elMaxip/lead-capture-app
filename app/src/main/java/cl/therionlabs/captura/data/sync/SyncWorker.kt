@@ -25,7 +25,6 @@ class SyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        // Solo el captador sincroniza; sin sesión los registros esperan al próximo inicio de sesión.
         if (sessionManager.sesion.value?.rol != Rol.CAPTADOR) return Result.success()
 
         try {

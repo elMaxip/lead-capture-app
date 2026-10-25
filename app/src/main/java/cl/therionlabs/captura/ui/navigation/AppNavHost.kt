@@ -19,7 +19,6 @@ import cl.therionlabs.captura.ui.login.LoginScreen
 
 private const val DURACION_MS = 350
 
-/** Cada perfil tiene una única pantalla: el captador el formulario y el administrativo la lista. */
 private fun destinoPara(rol: Rol?): Any = when (rol) {
     null -> Login
     Rol.CAPTADOR -> Formulario
@@ -31,7 +30,6 @@ fun AppNavHost(sesion: Sesion?) {
     val navController = rememberNavController()
     val destinoInicial = remember { destinoPara(sesion?.rol) }
 
-    // Al iniciar o cerrar sesión se reemplaza toda la pila por la pantalla del perfil.
     LaunchedEffect(sesion?.rol) {
         val destino = destinoPara(sesion?.rol)
         if (navController.currentDestination?.hasRoute(destino::class) != true) {

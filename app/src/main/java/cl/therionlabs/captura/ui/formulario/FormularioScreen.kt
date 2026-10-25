@@ -48,17 +48,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
+import androidx.compose.ui.focus.FocusEventModifierNode
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -70,6 +69,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cl.therionlabs.captura.BuildConfig
 import cl.therionlabs.captura.R
+import cl.therionlabs.captura.data.local.AreaEntity
+import cl.therionlabs.captura.data.local.CursoEntity
 import cl.therionlabs.captura.domain.model.CanalContacto
 import cl.therionlabs.captura.domain.model.Modalidad
 import cl.therionlabs.captura.domain.model.NivelEducativo
@@ -149,14 +150,14 @@ fun FormularioScreen(viewModel: FormularioViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .consumeWindowInsets(padding)
-                .imePadding(),
+                .consumeWindowInsets(padding),
         ) {
             OfflineBanner(visible = resumen.sinConexion)
             if (!resumen.cargando) ResumenPendientes(pendientes = resumen.pendientes)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .imePadding()
                     .verticalScroll(scrollState)
                     .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -167,9 +168,40 @@ fun FormularioScreen(viewModel: FormularioViewModel = hiltViewModel()) {
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    SeccionDatos(state, viewModel, focus, onSiguiente = { focusManager.clearFocus() })
-                    SeccionIntereses(state, viewModel, focus)
-                    SeccionOperativa(state, viewModel, focus)
+                    SeccionDatos(
+                        nombre = state.nombre,
+                        email = state.email,
+                        telefono = state.telefono,
+                        nivelEducativo = state.nivelEducativo,
+                        errorNombre = state.errorVisible(Campo.NOMBRE),
+                        errorEmail = state.errorVisible(Campo.EMAIL),
+                        errorTelefono = state.errorVisible(Campo.TELEFONO),
+                        errorNivel = state.errorVisible(Campo.NIVEL_EDUCATIVO),
+                        viewModel = viewModel,
+                        focus = focus,
+                        onSiguiente = { focusManager.clearFocus() },
+                    )
+                    SeccionIntereses(
+                        areas = state.areas,
+                        areaSeleccionada = state.areaSeleccionada,
+                        cursos = state.cursos,
+                        cursoSeleccionado = state.cursoSeleccionado,
+                        hayArea = state.areaId != null,
+                        modalidad = state.modalidad,
+                        canalContacto = state.canalContacto,
+                        errorArea = state.errorVisible(Campo.AREA),
+                        errorCurso = state.errorVisible(Campo.CURSO),
+                        errorModalidad = state.errorVisible(Campo.MODALIDAD),
+                        errorCanal = state.errorVisible(Campo.CANAL_CONTACTO),
+                        viewModel = viewModel,
+                        focus = focus,
+                    )
+                    SeccionOperativa(
+                        observaciones = state.observaciones,
+                        errorObservaciones = state.errorVisible(Campo.OBSERVACIONES),
+                        viewModel = viewModel,
+                        focus = focus,
+                    )
                     BotonGuardar(
                         habilitado = state.esValido && !state.guardando,
                         guardando = state.guardando,
@@ -187,19 +219,26 @@ fun FormularioScreen(viewModel: FormularioViewModel = hiltViewModel()) {
 
 @Composable
 private fun SeccionDatos(
-    state: FormularioUiState,
+    nombre: String,
+    email: String,
+    telefono: String,
+    nivelEducativo: NivelEducativo?,
+    errorNombre: String?,
+    errorEmail: String?,
+    errorTelefono: String?,
+    errorNivel: String?,
     viewModel: FormularioViewModel,
     focus: Map<Campo, FocusRequester>,
     onSiguiente: () -> Unit,
 ) {
     Seccion(stringResource(R.string.seccion_datos), Icons.Outlined.Badge) {
         OutlinedTextField(
-            value = state.nombre,
+            value = nombre,
             onValueChange = viewModel::onNombreChange,
             label = { Text(stringResource(R.string.campo_nombre)) },
             singleLine = true,
-            isError = state.errorVisible(Campo.NOMBRE) != null,
-            supportingText = { ErrorAnimado(state.errorVisible(Campo.NOMBRE)) },
+            isError = errorNombre != null,
+            supportingText = { ErrorAnimado(errorNombre) },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Next,
@@ -209,12 +248,12 @@ private fun SeccionDatos(
                 .campo(Campo.NOMBRE, focus, viewModel::marcarTocado),
         )
         OutlinedTextField(
-            value = state.email,
+            value = email,
             onValueChange = viewModel::onEmailChange,
             label = { Text(stringResource(R.string.campo_email)) },
             singleLine = true,
-            isError = state.errorVisible(Campo.EMAIL) != null,
-            supportingText = { ErrorAnimado(state.errorVisible(Campo.EMAIL)) },
+            isError = errorEmail != null,
+            supportingText = { ErrorAnimado(errorEmail) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next,
@@ -224,13 +263,13 @@ private fun SeccionDatos(
                 .campo(Campo.EMAIL, focus, viewModel::marcarTocado),
         )
         OutlinedTextField(
-            value = state.telefono,
+            value = telefono,
             onValueChange = viewModel::onTelefonoChange,
             label = { Text(stringResource(R.string.campo_telefono)) },
             prefix = { Text(stringResource(R.string.campo_telefono_prefijo)) },
             singleLine = true,
-            isError = state.errorVisible(Campo.TELEFONO) != null,
-            supportingText = { ErrorAnimado(state.errorVisible(Campo.TELEFONO)) },
+            isError = errorTelefono != null,
+            supportingText = { ErrorAnimado(errorTelefono) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done,
@@ -243,11 +282,11 @@ private fun SeccionDatos(
         DropdownField(
             label = stringResource(R.string.campo_nivel),
             opciones = NivelEducativo.entries,
-            seleccion = state.nivelEducativo,
+            seleccion = nivelEducativo,
             etiqueta = { it.etiqueta },
             onSeleccion = viewModel::onNivelEducativo,
             onCerrar = { viewModel.marcarTocado(Campo.NIVEL_EDUCATIVO) },
-            error = state.errorVisible(Campo.NIVEL_EDUCATIVO),
+            error = errorNivel,
             focusRequester = focus.getValue(Campo.NIVEL_EDUCATIVO),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -256,52 +295,62 @@ private fun SeccionDatos(
 
 @Composable
 private fun SeccionIntereses(
-    state: FormularioUiState,
+    areas: List<AreaEntity>,
+    areaSeleccionada: AreaEntity?,
+    cursos: List<CursoEntity>,
+    cursoSeleccionado: CursoEntity?,
+    hayArea: Boolean,
+    modalidad: Modalidad?,
+    canalContacto: CanalContacto?,
+    errorArea: String?,
+    errorCurso: String?,
+    errorModalidad: String?,
+    errorCanal: String?,
     viewModel: FormularioViewModel,
     focus: Map<Campo, FocusRequester>,
 ) {
     Seccion(stringResource(R.string.seccion_intereses), Icons.Outlined.Interests) {
         DropdownField(
             label = stringResource(R.string.campo_area),
-            opciones = state.areas,
-            seleccion = state.areaSeleccionada,
+            opciones = areas,
+            seleccion = areaSeleccionada,
             etiqueta = { it.nombre },
             onSeleccion = viewModel::onArea,
             onCerrar = { viewModel.marcarTocado(Campo.AREA) },
-            error = state.errorVisible(Campo.AREA),
+            error = errorArea,
             focusRequester = focus.getValue(Campo.AREA),
             modifier = Modifier.fillMaxWidth(),
         )
         DropdownField(
             label = stringResource(R.string.campo_curso),
-            opciones = state.cursos,
-            seleccion = state.cursoSeleccionado,
+            opciones = cursos,
+            seleccion = cursoSeleccionado,
             etiqueta = { it.nombre },
             onSeleccion = viewModel::onCurso,
             onCerrar = { viewModel.marcarTocado(Campo.CURSO) },
-            error = state.errorVisible(Campo.CURSO),
-            enabled = state.areaId != null,
-            placeholder = if (state.areaId == null) stringResource(R.string.campo_curso_sin_area) else null,
+            error = errorCurso,
+            enabled = hayArea,
+            placeholder = if (!hayArea) stringResource(R.string.campo_curso_sin_area) else null,
             focusRequester = focus.getValue(Campo.CURSO),
             modifier = Modifier.fillMaxWidth(),
         )
         Selector(
             titulo = stringResource(R.string.campo_modalidad),
             opciones = Modalidad.entries,
-            seleccion = state.modalidad,
+            seleccion = modalidad,
             etiqueta = { it.etiqueta },
             onSeleccion = viewModel::onModalidad,
-            error = state.errorVisible(Campo.MODALIDAD),
+            error = errorModalidad,
             focusRequester = focus.getValue(Campo.MODALIDAD),
         )
         Spacer(Modifier.height(4.dp))
         Selector(
             titulo = stringResource(R.string.campo_canal),
             opciones = CanalContacto.entries,
-            seleccion = state.canalContacto,
+            seleccion = canalContacto,
             etiqueta = { it.etiqueta },
             onSeleccion = viewModel::onCanalContacto,
-            error = state.errorVisible(Campo.CANAL_CONTACTO),
+            error = errorCanal,
             focusRequester = focus.getValue(Campo.CANAL_CONTACTO),
         )
     }
@@ -309,7 +358,8 @@ private fun SeccionIntereses(
 
 @Composable
 private fun SeccionOperativa(
-    state: FormularioUiState,
+    observaciones: String,
+    errorObservaciones: String?,
     viewModel: FormularioViewModel,
     focus: Map<Campo, FocusRequester>,
 ) {
@@ -322,20 +372,20 @@ private fun SeccionOperativa(
 
     Seccion(stringResource(R.string.seccion_operativa), Icons.AutoMirrored.Outlined.StickyNote2) {
         OutlinedTextField(
-            value = state.observaciones,
+            value = observaciones,
             onValueChange = viewModel::onObservacionesChange,
             label = { Text(stringResource(R.string.campo_observaciones)) },
             minLines = 3,
             maxLines = 6,
-            isError = state.errorVisible(Campo.OBSERVACIONES) != null,
+            isError = errorObservaciones != null,
             supportingText = {
                 Row {
-                    ErrorAnimado(state.errorVisible(Campo.OBSERVACIONES), Modifier.weight(1f))
+                    ErrorAnimado(errorObservaciones, Modifier.weight(1f))
                     Spacer(Modifier.size(8.dp))
                     Text(
                         stringResource(
                             R.string.campo_contador,
-                            state.observaciones.trim().length,
+                            observaciones.trim().length,
                             ProspectoValidator.OBSERVACIONES_MAX,
                         )
                     )
@@ -458,10 +508,29 @@ private fun Modifier.campo(
     campo: Campo,
     focus: Map<Campo, FocusRequester>,
     onTocado: (Campo) -> Unit,
-): Modifier = composed {
-    var tuvoFoco by remember { mutableStateOf(false) }
-    focusRequester(focus.getValue(campo)).onFocusChanged {
-        if (tuvoFoco && !it.isFocused) onTocado(campo)
-        tuvoFoco = it.isFocused
+): Modifier = focusRequester(focus.getValue(campo)) then MarcarTocadoElement(campo, onTocado)
+
+/** Marca el campo como tocado cuando pierde el foco. Modifier.Node en vez de `composed` para no recrearlo en cada recomposición. */
+private data class MarcarTocadoElement(
+    val campo: Campo,
+    val onTocado: (Campo) -> Unit,
+) : ModifierNodeElement<MarcarTocadoNode>() {
+    override fun create() = MarcarTocadoNode(campo, onTocado)
+
+    override fun update(node: MarcarTocadoNode) {
+        node.campo = campo
+        node.onTocado = onTocado
+    }
+}
+
+private class MarcarTocadoNode(
+    var campo: Campo,
+    var onTocado: (Campo) -> Unit,
+) : Modifier.Node(), FocusEventModifierNode {
+    private var tuvoFoco = false
+
+    override fun onFocusEvent(focusState: FocusState) {
+        if (tuvoFoco && !focusState.isFocused) onTocado(campo)
+        tuvoFoco = focusState.isFocused
     }
 }

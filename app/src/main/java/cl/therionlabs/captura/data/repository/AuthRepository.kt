@@ -19,10 +19,8 @@ class AuthRepository @Inject constructor(
     private val sessionManager: SessionManager,
     private val syncScheduler: SyncScheduler,
 ) {
-    // El aviso de cierre al servidor no debe cancelarse cuando la pantalla desaparece.
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /** Lanza IOException sin red y HttpException (401) si las credenciales no son válidas. */
     suspend fun iniciarSesion(username: String, password: String): Sesion {
         val respuesta = api.iniciarSesion(LoginRequestDto(username.trim(), password))
         val rol = Rol.entries.find { it.name == respuesta.usuario.rol }
@@ -34,15 +32,10 @@ class AuthRepository @Inject constructor(
             rol = rol,
         )
         sessionManager.guardar(sesion)
-        // Los registros que quedaron pendientes de una sesión anterior se envían ahora.
         if (rol == Rol.CAPTADOR) syncScheduler.programar()
         return sesion
     }
 
-    /**
-     * Cierra la sesión en el dispositivo de inmediato y avisa al servidor en segundo plano.
-     * Los prospectos pendientes se conservan y se sincronizan en el próximo inicio de sesión.
-     */
     fun cerrarSesion() {
         val token = sessionManager.token ?: return
         sessionManager.limpiar()
