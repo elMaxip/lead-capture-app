@@ -83,29 +83,46 @@ class FormularioViewModel @Inject constructor(
         }
     }
 
-    fun onNombreChange(valor: String) = editar(Campo.NOMBRE) { copy(nombre = valor) }
+    fun onAction(action: FormularioAccion) {
+        when (action) {
+            is FormularioAccion.OnNameChange -> onNameChange(action.value)
+            is FormularioAccion.OnEmailChange -> onEmailChange(action.value)
+            is FormularioAccion.OnPhoneChange -> onPhoneChange(action.value)
+            is FormularioAccion.OnEducationChange -> onEducationChange(action.value)
+            is FormularioAccion.OnAreaChange -> onAreaChange(action.value)
+            is FormularioAccion.OnCourseChange -> onCourseChange(action.value)
+            is FormularioAccion.OnModeChange -> onModeChange(action.value)
+            is FormularioAccion.OnContactChange -> onContactChange(action.value)
+            is FormularioAccion.OnObservationsChange -> onObservationChange(action.value)
+            is FormularioAccion.FieldTouched -> touchField(action.value)
+        }
+    }
 
-    fun onEmailChange(valor: String) = editar(Campo.EMAIL) { copy(email = valor.trim()) }
+    private fun onNameChange(value: String) {
+        editar(Campo.NOMBRE) { copy(nombre = value) }
+    }
 
-    fun onTelefonoChange(valor: String) = editar(Campo.TELEFONO) {
+    private fun onEmailChange(value: String) = editar(Campo.EMAIL) { copy(email = value.trim()) }
+
+    private fun onPhoneChange(valor: String) = editar(Campo.TELEFONO) {
         copy(telefono = valor.filter(Char::isDigit).take(TELEFONO_DIGITOS))
     }
 
-    fun onNivelEducativo(valor: NivelEducativo) = editar(Campo.NIVEL_EDUCATIVO) { copy(nivelEducativo = valor) }
+    private fun onEducationChange(value: NivelEducativo) = editar(Campo.NIVEL_EDUCATIVO) { copy(nivelEducativo = value) }
 
-    fun onArea(area: AreaEntity) = editar(Campo.AREA) {
-        if (areaId == area.id) this else copy(areaId = area.id, cursoId = null, cursos = emptyList())
+    private fun onAreaChange(value: AreaEntity) = editar(Campo.AREA) {
+        if (areaId == value.id) this else copy(areaId = value.id, cursoId = null, cursos = emptyList())
     }
 
-    fun onCurso(curso: CursoEntity) = editar(Campo.CURSO) { copy(cursoId = curso.id) }
+    private fun onCourseChange(value: CursoEntity) = editar(Campo.CURSO) { copy(cursoId = value.id) }
 
-    fun onModalidad(valor: Modalidad) = editar(Campo.MODALIDAD) { copy(modalidad = valor) }
+    private fun onModeChange(value: Modalidad) = editar(Campo.MODALIDAD) { copy(modalidad = value) }
 
-    fun onCanalContacto(valor: CanalContacto) = editar(Campo.CANAL_CONTACTO) { copy(canalContacto = valor) }
+    private fun onContactChange(value: CanalContacto) = editar(Campo.CANAL_CONTACTO) { copy(canalContacto = value) }
 
-    fun onObservacionesChange(valor: String) = editar(Campo.OBSERVACIONES) { copy(observaciones = valor) }
+    private fun onObservationChange(value: String) = editar(Campo.OBSERVACIONES) { copy(observaciones = value) }
 
-    fun marcarTocado(campo: Campo) {
+    fun touchField(campo: Campo) {
         _uiState.update { if (campo in it.tocados) it else it.copy(tocados = it.tocados + campo) }
     }
 
