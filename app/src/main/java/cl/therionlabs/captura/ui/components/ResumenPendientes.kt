@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cl.therionlabs.captura.R
 
-/** Indica cuántos registros del dispositivo faltan por sincronizar. */
 @Composable
 fun ResumenPendientes(pendientes: Int, modifier: Modifier = Modifier) {
     AnimatedContent(

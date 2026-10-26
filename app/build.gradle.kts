@@ -16,10 +16,9 @@ fun loadProperties(name: String): Properties = Properties().apply {
 val localProperties = loadProperties("local.properties")
 val keystoreProperties = loadProperties("keystore.properties")
 
-// URL del backend: local.properties > gradle.properties > valor para el emulador.
 val apiBaseUrl: String = localProperties.getProperty("API_BASE_URL")
     ?: providers.gradleProperty("API_BASE_URL").orNull
-    ?: "http://10.0.2.2:8080/"
+    ?: "http://10.0.2.2:8081/"
 
 android {
     namespace = "cl.therionlabs.captura"

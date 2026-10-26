@@ -26,7 +26,6 @@ data class FormularioUiState(
     val cursos: List<CursoEntity> = emptyList(),
     val guardando: Boolean = false,
 ) {
-    // Perezoso: solo se valida el estado que realmente se lee, no cada copy() intermedio.
     val errores: Map<Campo, String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
         buildMap {
             ProspectoValidator.validarNombre(nombre)?.let { put(Campo.NOMBRE, it) }
@@ -49,7 +48,6 @@ data class FormularioUiState(
     val cursoSeleccionado: CursoEntity? get() = cursos.find { it.id == cursoId }
 }
 
-/** Estado de los registros guardados en el dispositivo. */
 data class ResumenSync(
     val pendientes: Int = 0,
     val sinConexion: Boolean = false,
